@@ -1,5 +1,7 @@
 FROM golang:alpine AS builder
 
+LABEL stage=gobuilder
+
 ENV CGO_ENABLED 0
 
 WORKDIR /build
@@ -12,6 +14,8 @@ RUN go build -ldflags="-s -w" -o /app/main ./main.go
 
 
 FROM scratch
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 WORKDIR /app
 COPY --from=builder /app/main /app/main

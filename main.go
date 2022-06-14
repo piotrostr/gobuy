@@ -10,7 +10,6 @@ import (
 	"time"
 
 	binance "github.com/adshao/go-binance/v2"
-	"github.com/joho/godotenv"
 	"github.com/kardianos/service"
 )
 
@@ -23,10 +22,6 @@ type Buyer struct {
 }
 
 func GetBuyer(quantity string, interval int) (*Buyer, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		return nil, errors.New("API_KEY not set")
