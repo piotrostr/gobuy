@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	binance "github.com/adshao/go-binance/v2"
@@ -35,6 +36,15 @@ func GetBuyer(quantity string, interval int) (*Buyer, error) {
 		return nil, errors.New("SECRET_KEY not set")
 	}
 	client := binance.NewClient(apiKey, secretKey)
+	balance, err := client.NewGetAccountService().Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range balance.Balances {
+		if b.Asset == "USDT" {
+			fmt.Printf("Balance: %s USDT\n", strings.Split(b.Free, ".")[0])
+		}
+	}
 	buyer := &Buyer{
 		quantity: quantity,
 		interval: interval,
@@ -63,27 +73,26 @@ func (b *Buyer) TestBuy() error {
 	return err
 }
 
-func (b *Buyer) Loop() error {
+func (b *Buyer) Start(s service.Service) error {
+	ch := make(chan error)
+	go b.Run(ch)
+	return <-ch
+}
+
+func (b *Buyer) Run(ch chan error) {
 	for {
-		err := b.TestBuy()
+		res, err := b.Buy()
 		if err != nil {
-			return err
+			ch <- err
+			return
 		}
-		println("Bought (Test)")
+		fmt.Println(res)
 		time.Sleep(time.Duration(b.interval) * time.Second)
 	}
 }
 
-func (b *Buyer) Start(s service.Service) error {
-	err := b.Loop()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (b *Buyer) Stop(s service.Service) error {
-	println("shutting down")
+	fmt.Println("Stopping")
 	return nil
 }
 
@@ -93,23 +102,35 @@ func main() {
 		DisplayName: "gobuy",
 		Description: "Buy X ETH every N time.",
 	}
-	quantity := flag.String("qty", "0.001", "Quantity of ETH to buy")
-	interval := flag.Int("interval", 1, "Interval in minutes")
+	quantity := flag.String("qty", "0.01", "Quantity of ETH to buy")
+	interval := flag.Int("interval", 420, "Interval in minutes")
 	flag.Parse()
+
 	buyer, err := GetBuyer(*quantity, *interval)
 	if err != nil {
-		println(err.Error())
+		fmt.Println(err.Error())
 		return
 	}
+
 	s, err := service.New(buyer, config)
 	if err != nil {
-		println(err.Error())
+		fmt.Println(err.Error())
 		return
 	}
-	msg := "Starting gobuy service, will buy %s ETH every %d minutes"
-	println(fmt.Sprintf(msg, buyer.quantity, buyer.interval))
+
+	logger, err := s.Logger(nil)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	msg := "Buying %s ETH every %d minutes"
+	err = logger.Info(fmt.Sprintf(msg, buyer.quantity, buyer.interval))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	err = s.Run()
 	if err != nil {
-		println(err.Error())
+		logger.Error(err)
 	}
 }
