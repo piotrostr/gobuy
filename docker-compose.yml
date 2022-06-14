@@ -1,0 +1,7 @@
+version: "3"
+services:
+  buyer:
+    image: piotrostr/gobuy
+    env_file: .env
+    platform: linux/amd64
+    build: .
