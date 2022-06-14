@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	binance "github.com/adshao/go-binance/v2"
 	"github.com/joho/godotenv"
@@ -62,8 +63,22 @@ func (b *Buyer) TestBuy() error {
 	return err
 }
 
+func (b *Buyer) Loop() error {
+	for {
+		err := b.TestBuy()
+		if err != nil {
+			return err
+		}
+		println("Bought (Test)")
+		time.Sleep(time.Duration(b.interval) * time.Second)
+	}
+}
+
 func (b *Buyer) Start(s service.Service) error {
-	println("starting")
+	err := b.Loop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -78,8 +93,8 @@ func main() {
 		DisplayName: "gobuy",
 		Description: "Buy X ETH every N time.",
 	}
-	quantity := flag.String("qty", "0.01", "Quantity of ETH to buy")
-	interval := flag.Int("interval", 1, "Interval")
+	quantity := flag.String("qty", "0.001", "Quantity of ETH to buy")
+	interval := flag.Int("interval", 1, "Interval in minutes")
 	flag.Parse()
 	buyer, err := GetBuyer(*quantity, *interval)
 	if err != nil {
@@ -91,7 +106,10 @@ func main() {
 		println(err.Error())
 		return
 	}
-	msg := "Starting gobuy service, will buy %d ETH every %s"
+	msg := "Starting gobuy service, will buy %s ETH every %d minutes"
 	println(fmt.Sprintf(msg, buyer.quantity, buyer.interval))
-	s.Run()
+	err = s.Run()
+	if err != nil {
+		println(err.Error())
+	}
 }
