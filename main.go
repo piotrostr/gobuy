@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 
@@ -52,6 +53,10 @@ func main() {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		fmt.Println(res)
+		bytes, err := json.Marshal(res)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Println(string(bytes))
 	}
 }
