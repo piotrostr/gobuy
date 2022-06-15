@@ -17,10 +17,11 @@ type Buyer struct {
 	Quantity string
 	Interval int
 	Client   *binance.Client
+	Symbol   string
 	ch       chan int
 }
 
-func Get(quantity string, interval int) (*Buyer, error) {
+func Get(quantity string, interval int, symbol string) (*Buyer, error) {
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		return nil, errors.New("API_KEY not set")
@@ -43,13 +44,24 @@ func Get(quantity string, interval int) (*Buyer, error) {
 		Quantity: quantity,
 		Interval: interval,
 		Client:   client,
+		Symbol:   symbol,
 	}
 	return buyer, nil
 }
 
 func (b *Buyer) Buy() (*binance.CreateOrderResponse, error) {
 	order := b.Client.NewCreateOrderService()
-	order.Symbol("ETHUSDT").Side("BUY").Type("MARKET")
+	order.Symbol(b.Symbol).Side("BUY").Type("MARKET")
+	res, err := order.Quantity(b.Quantity).Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
+}
+
+func (b *Buyer) Sell(symbol string, quantity string) (*binance.CreateOrderResponse, error) {
+	order := b.Client.NewCreateOrderService()
+	order.Symbol(symbol).Side("SELL").Type("MARKET")
 	res, err := order.Quantity(b.Quantity).Do(ctx)
 	if err != nil {
 		return nil, err
@@ -59,7 +71,7 @@ func (b *Buyer) Buy() (*binance.CreateOrderResponse, error) {
 
 func (b *Buyer) TestBuy() error {
 	order := b.Client.NewCreateOrderService()
-	order.Symbol("ETHUSDT").Side("BUY").Type("MARKET")
+	order.Symbol(b.Symbol).Side("BUY").Type("MARKET")
 	err := order.Quantity(b.Quantity).Test(ctx)
 	if err != nil {
 		return err
@@ -76,6 +88,7 @@ func (b *Buyer) Run() error {
 		fmt.Println(res)
 		time.Sleep(time.Duration(b.Interval) * time.Second)
 	}
+
 	// put a chan on struct and share it to other methods
 	// of a struct? so for example, Stop could have the b.chan <-1
 	// possibility to stop the loop
