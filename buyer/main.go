@@ -49,6 +49,15 @@ func Get(quantity string, interval int, symbol string) (*Buyer, error) {
 	return buyer, nil
 }
 
+func (b *Buyer) Price() (string, error) {
+	service := b.Client.NewAveragePriceService()
+	price, err := service.Symbol(b.Symbol).Do(ctx)
+	if err != nil {
+		return "", err
+	}
+	return price.Price, nil
+}
+
 func (b *Buyer) Buy() (*binance.CreateOrderResponse, error) {
 	order := b.Client.NewCreateOrderService()
 	order.Symbol(b.Symbol).Side("BUY").Type("MARKET")

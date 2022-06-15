@@ -19,9 +19,10 @@ func main() {
 	run := flag.Bool("run", false, "Run the bot")
 	buy := flag.Bool("buy", false, "Buy once")
 	docker := flag.Bool("docker", false, "Include the flag if running in container")
+	price := flag.Bool("price", false, "Include the flag to get the price and exit")
 	flag.Parse()
 
-	if !*run && !*buy {
+	if !*run && !*buy && !*price {
 		flag.PrintDefaults()
 		return
 	}
@@ -58,5 +59,11 @@ func main() {
 			fmt.Println(err.Error())
 		}
 		fmt.Println(string(bytes))
+	} else if *price {
+		price, err := buyer.Price()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Printf("Price: %s\n", price)
 	}
 }
