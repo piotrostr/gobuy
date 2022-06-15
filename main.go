@@ -48,17 +48,16 @@ func main() {
 			fmt.Println(err.Error())
 		}
 	} else if *buy {
-		msg := "Buying %s ETH once\n"
-		fmt.Printf(msg, buyer.Quantity)
+		fmt.Printf("Buying %s ETH once\n", buyer.Quantity)
 		res, err := buyer.Buy()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		bytes, err := json.Marshal(res)
+		b, err := json.MarshalIndent(res, "", "  ")
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		fmt.Println(string(bytes))
+		fmt.Println(string(b))
 	} else if *price {
 		price, err := buyer.Price()
 		if err != nil {
