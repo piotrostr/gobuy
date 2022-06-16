@@ -5,12 +5,30 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/piotrostr/gobuy/buyer"
 )
 
 var ctx = context.Background()
+
+func envExists() bool {
+	exists := false
+
+	files, err := os.ReadDir("./")
+	if err != nil {
+		fmt.Println(err)
+		return exists
+	}
+
+	for _, f := range files {
+		if f.Name() == ".env" {
+			exists = true
+		}
+	}
+	return exists
+}
 
 func main() {
 	quantity := flag.String("qty", "0.01", "Quantity of ETH")
@@ -27,7 +45,7 @@ func main() {
 		return
 	}
 
-	if !*docker {
+	if !*docker && envExists() {
 		err := godotenv.Load()
 		if err != nil {
 			fmt.Println("Error loading .env file")
