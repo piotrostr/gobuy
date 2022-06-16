@@ -3,16 +3,19 @@
 Simple go service to keep started in the background and buy you $X of ethereum
 during bear market.
 
-Also supports buying from the command line
+Also supports buying from the command line.
+
+No plans anytime soon to implement selling (redundant).
 
 ## Requires
 
-* `.env` file containing `API_KEY` and `SECRET_KEY` from binance or setting the env variables
+- `.env` file containing `API_KEY` and `SECRET_KEY` from binance or setting the
+  env variables
 
 ## Usage
 
 ```bash
-$ gobuy --price
+$ gobuy -price
 Balance: 628 USDT
 Price: 1119.74556450
 ```
