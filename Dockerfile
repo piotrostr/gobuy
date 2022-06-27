@@ -20,4 +20,4 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 WORKDIR /app
 COPY --from=builder /app/main /app/main
 
-CMD ["./main"]
+CMD ["./main", "-buy"]

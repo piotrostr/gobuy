@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gobuy
+spec:
+  selector:
+    matchLabels:
+      name: gobuy
+  replicas: 1
+  template:
+      metadata:
+        labels:
+          name: gobuy
+      spec:
+        containers:
+          - name: metadata
+            image: piotrostr/gobuy
+            envFrom:
+              - secretRef:
+                  name: gobuy-secrets
+                  optional: False
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+        imagePullSecrets:
+          - name: regcred
+        restartPolicy: Always
