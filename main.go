@@ -30,6 +30,10 @@ func envExists() bool {
 	return exists
 }
 
+/*
+* this is all kind of wonky so would replace it with cobra
+* nice completion and help output and can all args in a type-safe way
+ */
 func main() {
 	quantity := flag.String("qty", "0.01", "Quantity of ETH")
 	interval := flag.Int("interval", 420, "Interval in minutes")
@@ -37,13 +41,7 @@ func main() {
 	run := flag.Bool("run", false, "Run the bot")
 	buy := flag.Bool("buy", false, "Buy once")
 	docker := flag.Bool("docker", false, "Include the flag if running in container")
-	price := flag.Bool("price", false, "Include the flag to get the price and exit")
 	flag.Parse()
-
-	if !*run && !*buy && !*price {
-		flag.PrintDefaults()
-		return
-	}
 
 	if !*docker && envExists() {
 		err := godotenv.Load()
@@ -54,6 +52,22 @@ func main() {
 	}
 
 	buyer, err := buyer.Get(*quantity, *interval, *symbol)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	if !*run && !*buy {
+		err = buyer.Top()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		flag.PrintDefaults()
+		return
+	}
+
+	err = buyer.Top()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -76,11 +90,5 @@ func main() {
 			fmt.Println(err.Error())
 		}
 		fmt.Println(string(b))
-	} else if *price {
-		price, err := buyer.Price()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Printf("Price: %s\n", price)
 	}
 }

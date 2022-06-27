@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 
 	binance "github.com/adshao/go-binance/v2"
@@ -31,15 +31,6 @@ func Get(quantity string, interval int, symbol string) (*Buyer, error) {
 		return nil, errors.New("SECRET_KEY not set")
 	}
 	client := binance.NewClient(apiKey, secretKey)
-	balance, err := client.NewGetAccountService().Do(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, b := range balance.Balances {
-		if b.Asset == "USDT" {
-			fmt.Printf("Balance: %s USDT\n", strings.Split(b.Free, ".")[0])
-		}
-	}
 	buyer := &Buyer{
 		Quantity: quantity,
 		Interval: interval,
@@ -47,6 +38,25 @@ func Get(quantity string, interval int, symbol string) (*Buyer, error) {
 		Symbol:   symbol,
 	}
 	return buyer, nil
+}
+
+func (b *Buyer) Top() error {
+	balance, err := b.Client.NewGetAccountService().Do(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Balances:")
+	for _, b := range balance.Balances {
+		freeBalance, err := strconv.ParseFloat(b.Free, 32)
+		if err != nil {
+			return err
+		}
+		if freeBalance != 0 {
+			fmt.Printf("%s: %s\n", b.Asset, b.Free)
+		}
+	}
+	fmt.Print("\n")
+	return nil
 }
 
 func (b *Buyer) Price() (string, error) {
@@ -98,9 +108,5 @@ func (b *Buyer) Run() error {
 		time.Sleep(time.Duration(b.Interval) * time.Second)
 	}
 
-	// put a chan on struct and share it to other methods
-	// of a struct? so for example, Stop could have the b.chan <-1
-	// possibility to stop the loop
-	// kind of no point since here time is blocking, unless
-	// select case with time.Timeout and case <-chan
+	// TODO run multiple channels of bots and collect logs from every bot
 }
