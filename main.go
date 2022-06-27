@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -85,10 +84,6 @@ func main() {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		b, err := json.MarshalIndent(res, "", "  ")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		fmt.Println(string(b))
+		buyer.PrintRes(res)
 	}
 }

@@ -2,6 +2,7 @@ package buyer
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -98,15 +99,22 @@ func (b *Buyer) TestBuy() error {
 	return err
 }
 
+func (b *Buyer) PrintRes(res any) {
+	barr, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(string(barr))
+}
+
 func (b *Buyer) Run() error {
 	for {
 		res, err := b.Buy()
 		if err != nil {
 			return err
 		}
-		fmt.Println(res)
+		b.PrintRes(res)
 		time.Sleep(time.Duration(b.Interval) * time.Second)
 	}
-
 	// TODO run multiple channels of bots and collect logs from every bot
 }
