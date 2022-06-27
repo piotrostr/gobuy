@@ -57,6 +57,11 @@ func (b *Buyer) Top() error {
 		}
 	}
 	fmt.Print("\n")
+	price, err := b.Price()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Price (%s): %s\n\n", b.Symbol, price)
 	return nil
 }
 
