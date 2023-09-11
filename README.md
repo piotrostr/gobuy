@@ -26,7 +26,7 @@ Balance: 628 USDT
 Buying 0.01 ETH once
 {
   "symbol": "ETHUSDT",
-  "orderId": [secret],
+  "orderId": "[secret]",
   "clientOrderId": "[secret]",
   "transactTime": 1655379729428,
   "price": "0.00000000",
