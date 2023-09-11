@@ -15,9 +15,31 @@ No plans anytime soon to implement selling (redundant).
 ## Usage
 
 ```bash
-$ gobuy -price
-Balance: 628 USDT
-Price: 1119.74556450
+$ gobuy
+Price (ETHUSDT): 1557.85366057
+
+Total Balance: 1037.901787 USDT
+
+USDT: 381.072632 USDT (36.715674%)
+ETH: 344.563640 USDT (33.198097%)
+LINK: 156.362570 USDT (15.065257%)
+DOT: 59.848975 USDT (5.766343%)
+MATIC: 35.280540 USDT (3.399218%)
+AVAX: 32.392115 USDT (3.120923%)
+BAND: 28.381314 USDT (2.734489%)
+
+  -buy
+        Buy once
+  -docker
+        Include the flag if running in container
+  -interval int
+        Interval in minutes (default 420)
+  -qty string
+        Quantity of ETH (default "0.01")
+  -run
+        Run the bot
+  -symbol string
+        Symbol of the pair to buy (default "ETHUSDT")
 ```
 
 ```bash
