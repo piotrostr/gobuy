@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -46,14 +47,31 @@ func (b *Buyer) Top() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Balances:")
-	for _, b := range balance.Balances {
-		freeBalance, err := strconv.ParseFloat(b.Free, 32)
+	priceService := b.Client.NewAveragePriceService()
+	balances := make(map[string]float64)
+	for _, balance := range balance.Balances {
+		freeBalance, err := strconv.ParseFloat(balance.Free, 32)
 		if err != nil {
 			return err
 		}
 		if freeBalance != 0 {
-			fmt.Printf("%s: %s\n", b.Asset, b.Free)
+			if balance.Asset == "ETHW" {
+				continue
+			}
+			if balance.Asset == "USDT" {
+				balances[balance.Asset] = freeBalance
+				continue
+			}
+			price, err := priceService.Symbol(balance.Asset + "USDT").Do(ctx)
+			if err != nil {
+				return err
+			}
+			// parse string to float
+			priceFloat, err := strconv.ParseFloat(price.Price, 32)
+			if err != nil {
+				return err
+			}
+			balances[balance.Asset] = freeBalance * priceFloat
 		}
 	}
 	fmt.Print("\n")
@@ -62,6 +80,36 @@ func (b *Buyer) Top() error {
 		return err
 	}
 	fmt.Printf("Price (%s): %s\n\n", b.Symbol, price)
+
+	// sum balances
+	var sum float64
+	for _, balance := range balances {
+		sum += balance
+	}
+
+	// print total
+	fmt.Printf("Total Balance: %f USDT\n", sum)
+
+	// sort by highest percentage
+	type kv struct {
+		Key   string
+		Value float64
+	}
+	var ss []kv
+	for k, v := range balances {
+		ss = append(ss, kv{k, v})
+	}
+	sort.Slice(ss, func(i, j int) bool {
+		return ss[i].Value > ss[j].Value
+	})
+
+	// print sorted balances as a table
+	fmt.Print("\n")
+	for _, kv := range ss {
+		percent := (kv.Value / sum) * 100
+		fmt.Printf("%s: %f USDT (%f%%)\n", kv.Key, kv.Value, percent)
+	}
+	fmt.Print("\n")
 	return nil
 }
 
